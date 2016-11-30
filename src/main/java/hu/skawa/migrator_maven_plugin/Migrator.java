@@ -29,14 +29,17 @@ import org.apache.maven.project.MavenProject;
 import hu.skawa.migrator_maven_plugin.model.InternalDependency;
 
 /**
- * Transform all dependencies for Bazel.
+ * Transform all dependencies for Bazel. Retrieves relevant information from the POM itself, and
+ * uses the {@link ResolutionScope} TEST to scout all dependencies.
+ * 
+ * @author zmeggyesi
  */
 @Mojo(
 		name = "transform",
 		defaultPhase = LifecyclePhase.PROCESS_SOURCES,
 		requiresDependencyResolution = ResolutionScope.TEST)
 public class Migrator extends AbstractMojo {
-
+	
 	@Parameter(required = true, defaultValue = "${project}")
 	private MavenProject project;
 	

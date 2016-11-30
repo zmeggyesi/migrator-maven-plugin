@@ -7,11 +7,11 @@
 	<version>0.5.0</version>
 	<packaging>maven-plugin</packaging>
 
-	<name>migrator-maven-plugin Maven Plugin</name>
+	<name>Maven-Bazel Migration Plugin</name>
 
-	<!-- FIXME change it to the project's website -->
-	<url>http://maven.apache.org</url>
-
+	<url>https://zmeggyesi.github.io/migrator-maven-plugin/</url>
+	<inceptionYear>2016</inceptionYear>
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -118,4 +118,11 @@
 			</build>
 		</profile>
 	</profiles>
+	<scm>
+		<connection>scm:git:ssh://github.com/zmeggyesi/migrator-maven-plugin.git</connection>
+	</scm>
+	<organization>
+		<name>Skawa Innovation Kft.</name>
+	</organization>
+	<description>Used to generate a Bazel-compatible listing of all dependencies transitively. Provides a listing of &quot;maven_jar()&quot; directives for the WORKSPACE file, and on request, the relevant &quot;@references&quot; for the BUILD files.</description>
 </project>
