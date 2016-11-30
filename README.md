@@ -10,10 +10,10 @@ Used to generate a Bazel-compatible listing of all dependencies transitively. Pr
 
 ```
 <plugin>
-			<groupId>hu.skawa</groupId>
-			<artifactId>migrator-maven-plugin</artifactId>
-			<version>0.5.0</version>
-		</plugin>
+	<groupId>hu.skawa</groupId>
+	<artifactId>migrator-maven-plugin</artifactId>
+	<version>0.5.0</version>
+</plugin>
 ```
 
 ## Parameters
