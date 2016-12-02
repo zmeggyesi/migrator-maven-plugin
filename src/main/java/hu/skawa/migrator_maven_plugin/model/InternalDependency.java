@@ -9,24 +9,39 @@ public class InternalDependency {
 	private String bazelName;
 	private String bazelArtifact;
 	
+	private String hash;
+	
 	public InternalDependency() {
 	}
 	
-	public InternalDependency(String groupId, String artifactId, String version) {
+	public InternalDependency(String groupId, String artifactId, String version, String hash) {
 		super();
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.version = version;
+		this.hash = hash;
 	}
 	
 	public String getArtifactId() {
 		return artifactId;
 	}
+
+	public String getBazelArtifact() {
+		return bazelArtifact;
+	}
+	
+	public String getBazelName() {
+		return sanitize(this.groupId + "." + this.artifactId);
+	}
 	
 	public String getGroupId() {
 		return groupId;
 	}
-
+	
+	public String getHash() {
+		return hash;
+	}
+	
 	public String getVersion() {
 		return version;
 	}
@@ -39,10 +54,31 @@ public class InternalDependency {
 		this.groupId = groupId;
 	}
 	
+	public void setHash(String hash) {
+		this.hash = hash;
+	}
+
 	public void setVersion(String version) {
 		this.version = version;
 	}
-	
+
+	public String toBazelDirective() {
+		StringBuilder sb = new StringBuilder("maven_jar(\n");
+		sb.append("\tname = \"");
+		
+		// sanitize name
+		this.bazelName = sanitize(this.groupId + "." + this.artifactId);
+		sb.append(this.bazelName);
+		
+		sb.append("\",\n\t");
+		sb.append("artifact = \"");
+		this.bazelArtifact = this.groupId + ":" + this.artifactId + ":" + this.version;
+		sb.append(this.bazelArtifact);
+		sb.append("\",\n");
+		sb.append(")");
+		return sb.toString();
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -57,33 +93,8 @@ public class InternalDependency {
 		sb.append("\n");
 		return sb.toString();
 	}
-	
+
 	private String sanitize(CharSequence input) {
 		return CharMatcher.javaLetterOrDigit().or(CharMatcher.is('_')).negate().replaceFrom(input, "_");
-	}
-	
-	public String toBazelDirective() {
-		StringBuilder sb = new StringBuilder("maven_jar(\n");
-		sb.append("\tname = \"");
-		
-		// sanitize name
-		this.bazelName = sanitize(this.groupId + "." + this.artifactId);
-		sb.append(this.bazelName);
-		
-		sb.append("\",\n\t");
-		sb.append("artifact = \"");
-		this.bazelArtifact = this.groupId+ ":" + this.artifactId + ":" + this.version;
-		sb.append(this.bazelArtifact);
-		sb.append("\",\n");
-		sb.append(")");
-		return sb.toString();
-	}
-
-	public String getBazelName() {
-		return bazelName;
-	}
-
-	public String getBazelArtifact() {
-		return bazelArtifact;
 	}
 }

@@ -26,6 +26,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
+
 import hu.skawa.migrator_maven_plugin.model.InternalDependency;
 
 /**
@@ -58,8 +61,15 @@ public class Migrator extends AbstractMojo {
 		getLog().info(outputFilePrefix);
 		Set<Artifact> artifacts = project.getArtifacts();
 		for (Artifact arti : artifacts) {
+			String hash = "";
+			try {
+				byte[] contents = Files.toByteArray(arti.getFile());
+				hash = "SHA1: " + Hashing.sha1().hashBytes(contents);
+			} catch (IOException e) {
+				throw new MojoExecutionException("Dependency could not be hashed!", e);
+			}
 			InternalDependency id = new InternalDependency(arti.getGroupId(), arti
-					.getArtifactId(), arti.getVersion());
+					.getArtifactId(), arti.getVersion(), hash);
 			allDependencies.add(id);
 		}
 		
