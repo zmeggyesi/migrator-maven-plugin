@@ -54,14 +54,13 @@ public class Migrator extends AbstractMojo {
 	
 	@Parameter(property = "outputReferences")
 	private Boolean outputReferences;
-
+	
 	@Parameter(property = "addHashes", defaultValue = "false")
 	private Boolean addHashes;
 	
 	private List<InternalDependency> allDependencies = new ArrayList<InternalDependency>();
 	
 	public void execute() throws MojoExecutionException {
-		getLog().info(outputFilePrefix);
 		Set<Artifact> artifacts = project.getArtifacts();
 		for (Artifact arti : artifacts) {
 			String hash = "";
