@@ -3,6 +3,7 @@ package hu.skawa.migrator_maven_plugin;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -63,9 +64,10 @@ public class Migrator extends AbstractMojo {
 	public void execute() throws MojoExecutionException {
 		Set<Artifact> artifacts = project.getArtifacts();
 		for (Artifact arti : artifacts) {
+			File file = arti.getFile();
 			String hash = "";
 			try {
-				byte[] contents = Files.toByteArray(arti.getFile());
+				byte[] contents = Files.toByteArray(file);
 				hash = Hashing.sha1().hashBytes(contents).toString();
 			} catch (IOException e) {
 				throw new MojoExecutionException("Dependency could not be hashed!", e);
@@ -73,6 +75,14 @@ public class Migrator extends AbstractMojo {
 			InternalDependency id = new InternalDependency(arti.getGroupId(), arti
 					.getArtifactId(), arti.getVersion(), hash);
 			allDependencies.add(id);
+			getLog().info(arti.getDownloadUrl());
+			File remotes = new File(file.getParent() + File.separator + "_remote.repositories");
+			try {
+				getLog().info(Files.toString(remotes, StandardCharsets.UTF_8));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		try {
@@ -97,7 +107,7 @@ public class Migrator extends AbstractMojo {
 				}
 			} else {
 				for (InternalDependency dep : allDependencies) {
-					getLog().info(dep.toBazelDirective(addHashes));
+//					getLog().info(dep.toBazelDirective(addHashes));
 				}
 			}
 		} catch (IOException e) {
