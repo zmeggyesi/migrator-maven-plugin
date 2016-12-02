@@ -4,7 +4,7 @@
 
 	<groupId>hu.skawa</groupId>
 	<artifactId>migrator-maven-plugin</artifactId>
-	<version>0.5.1</version>
+	<version>0.6.0</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>Maven-Bazel Migration Plugin</name>
