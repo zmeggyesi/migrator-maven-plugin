@@ -54,6 +54,9 @@ public class Migrator extends AbstractMojo {
 	
 	@Parameter(property = "outputReferences")
 	private Boolean outputReferences;
+
+	@Parameter(property = "addHashes", defaultValue = "false")
+	private Boolean addHashes;
 	
 	private List<InternalDependency> allDependencies = new ArrayList<InternalDependency>();
 	
@@ -64,7 +67,7 @@ public class Migrator extends AbstractMojo {
 			String hash = "";
 			try {
 				byte[] contents = Files.toByteArray(arti.getFile());
-				hash = "SHA1: " + Hashing.sha1().hashBytes(contents);
+				hash = Hashing.sha1().hashBytes(contents).toString();
 			} catch (IOException e) {
 				throw new MojoExecutionException("Dependency could not be hashed!", e);
 			}
@@ -79,7 +82,7 @@ public class Migrator extends AbstractMojo {
 					File directives = new File(outputFilePrefix + "-directives");
 					FileWriter writer = new FileWriter(directives);
 					for (InternalDependency dep : allDependencies) {
-						writer.write(dep.toBazelDirective());
+						writer.write(dep.toBazelDirective(addHashes));
 						writer.write("\n");
 					}
 					writer.close();
@@ -95,7 +98,7 @@ public class Migrator extends AbstractMojo {
 				}
 			} else {
 				for (InternalDependency dep : allDependencies) {
-					getLog().info(dep.toBazelDirective());
+					getLog().info(dep.toBazelDirective(addHashes));
 				}
 			}
 		} catch (IOException e) {

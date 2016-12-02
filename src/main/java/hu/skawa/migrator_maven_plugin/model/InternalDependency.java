@@ -62,7 +62,7 @@ public class InternalDependency {
 		this.version = version;
 	}
 
-	public String toBazelDirective() {
+	public String toBazelDirective(Boolean addHash) {
 		StringBuilder sb = new StringBuilder("maven_jar(\n");
 		sb.append("\tname = \"");
 		
@@ -75,6 +75,13 @@ public class InternalDependency {
 		this.bazelArtifact = this.groupId + ":" + this.artifactId + ":" + this.version;
 		sb.append(this.bazelArtifact);
 		sb.append("\",\n");
+		
+		if (addHash) {
+			sb.append("\tsha1 = \"");
+			sb.append(this.hash);
+			sb.append("\",\n");
+		}
+		
 		sb.append(")");
 		return sb.toString();
 	}
