@@ -19,8 +19,9 @@ Used to generate a Bazel-compatible listing of all dependencies transitively. Pr
 ## Parameters
 
 - `outputFilePrefix[String]`: Determines the prefix of the output files. If set, console output is suppressed and directed to the selected files.
-- `outputDirectives[String:true|false]`: Instructs the Migrator to output the `WORKSPACE` directives into a file named `${outputFilePrefix}-directives`
-- `outputReferences[String:true|false]`: Instructs the Migrator to output the `BUILD` directives into a file named `${outputFilePrefix}-references`
+- `outputDirectives[Boolean:true|false]`: Instructs the Migrator to output the `WORKSPACE` directives into a file named `${outputFilePrefix}-directives`
+- `outputReferences[Boolean:true|false]`: Instructs the Migrator to output the `BUILD` directives into a file named `${outputFilePrefix}-references`
+- `addHashes[Boolean:true|false]`: Instructs the Migrator to add SHA1 hashes of each artifact to the `WORKSPACE` directives. Defaults to false.
 
 ## Use
 
