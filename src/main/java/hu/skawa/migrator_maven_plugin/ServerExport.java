@@ -1,5 +1,8 @@
 package hu.skawa.migrator_maven_plugin;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -26,8 +29,8 @@ import com.google.common.collect.Lists;
 import hu.skawa.migrator_maven_plugin.model.Server;
 
 /**
- * Transform all dependencies for Bazel. Retrieves relevant information from the POM itself, and
- * uses the {@link ResolutionScope} TEST to scout all dependencies.
+ * Export registered servers for proper artifact resolution in Bazel. Necessary only if the
+ * Dependency Export was run with the {@code addServers} parameter enabled.
  * 
  * @author zmeggyesi
  */
@@ -47,11 +50,28 @@ public class ServerExport extends AbstractMojo {
 		List<ArtifactRepository> remoteRepos = project.getRemoteArtifactRepositories();
 		List<Server> servers = Lists.newArrayList();
 		for (ArtifactRepository repo : remoteRepos) {
-			servers.add(new Server(repo.getUrl(), repo.getAuthentication().getUsername(), repo.getAuthentication().getPassword(), repo.getId()));
+			//@formatter:off
+			servers.add(new Server(repo.getUrl(),
+					repo.getAuthentication().getUsername(),
+					repo.getAuthentication().getPassword(),
+					repo.getId()));
+			//@formatter:on
 		}
 		
-		for (Server s : servers) {
-			getLog().info(s.toBazelServer());
+		try {
+			for (Server s : servers) {
+				if (outputFilePrefix != null) {
+					File serverFile = new File(outputFilePrefix + "-servers");
+					FileWriter serverWriter = new FileWriter(serverFile);
+					serverWriter.write(s.toBazelServer());
+					serverWriter.write("\n");
+					serverWriter.close();
+				} else {
+					getLog().info(s.toBazelServer());
+				}
+			}
+		} catch (IOException e) {
+			getLog().error(e);
 		}
 	}
 }
