@@ -48,7 +48,7 @@ public class InternalDependency {
 		return pomServer;
 	}
 	
-	public String getSourceServer() {
+	public String getJarServer() {
 		return jarServer;
 	}
 	
@@ -72,7 +72,7 @@ public class InternalDependency {
 		this.pomServer = pomServer;
 	}
 	
-	public void setSourceServer(String sourceServer) {
+	public void setJarServer(String sourceServer) {
 		this.jarServer = sourceServer;
 	}
 
@@ -80,7 +80,7 @@ public class InternalDependency {
 		this.version = version;
 	}
 
-	public String toBazelDirective(Boolean addHash) {
+	public String toBazelDirective(Boolean addHash, Boolean addServer) {
 		StringBuilder sb = new StringBuilder("maven_jar(\n");
 		sb.append("\tname = \"");
 		
@@ -92,15 +92,21 @@ public class InternalDependency {
 		sb.append("artifact = \"");
 		this.bazelArtifact = this.groupId + ":" + this.artifactId + ":" + this.version;
 		sb.append(this.bazelArtifact);
-		sb.append("\",\n");
+		sb.append("\",");
 		
 		if (addHash) {
-			sb.append("\tsha1 = \"");
+			sb.append("\n\tsha1 = \"");
 			sb.append(this.hash);
-			sb.append("\",\n");
+			sb.append("\",");
 		}
 		
-		sb.append(")");
+		if (addServer) {
+			sb.append("\n\tserver = \"");
+			sb.append(this.jarServer);
+			sb.append("\",");
+		}
+		
+		sb.append("\n)");
 		return sb.toString();
 	}
 
