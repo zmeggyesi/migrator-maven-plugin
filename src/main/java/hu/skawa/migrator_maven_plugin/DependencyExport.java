@@ -41,7 +41,7 @@ import hu.skawa.migrator_maven_plugin.model.InternalDependency;
  * @author zmeggyesi
  */
 @Mojo(
-		name = "transform",
+		name = "dependencies",
 		defaultPhase = LifecyclePhase.PROCESS_SOURCES,
 		requiresDependencyResolution = ResolutionScope.TEST)
 public class DependencyExport extends AbstractMojo {
@@ -99,27 +99,24 @@ public class DependencyExport extends AbstractMojo {
 		}
 		
 		try {
-			if (outputFilePrefix != null) {
-				if (outputDirectives) {
-					File directives = new File(outputFilePrefix + "-directives");
-					FileWriter writer = new FileWriter(directives);
-					for (InternalDependency dep : allDependencies) {
-						writer.write(dep.toBazelDirective(addHashes, addServers));
-						writer.write("\n");
+			for (InternalDependency dep : allDependencies) {
+				if (outputFilePrefix != null) {
+					if (outputDirectives) {
+						File directives = new File(outputFilePrefix + "-directives");
+						FileWriter directiveWriter = new FileWriter(directives);
+						directiveWriter.write(dep.toBazelDirective(addHashes, addServers));
+						directiveWriter.write("\n");
+						directiveWriter.close();
 					}
-					writer.close();
-				}
-				if (outputReferences) {
-					File references = new File(outputFilePrefix + "-references");
-					FileWriter writer = new FileWriter(references);
-					for (InternalDependency dep : allDependencies) {
-						writer.write(dep.getArtifactId() + ": @" + dep.getBazelName() + "//jar");
-						writer.write("\n");
+					if (outputReferences) {
+						File references = new File(outputFilePrefix + "-references");
+						FileWriter referenceWriter = new FileWriter(references);
+						referenceWriter
+								.write(dep.getArtifactId() + ": @" + dep.getBazelName() + "//jar");
+						referenceWriter.write("\n");
+						referenceWriter.close();
 					}
-					writer.close();
-				}
-			} else {
-				for (InternalDependency dep : allDependencies) {
+				} else {
 					getLog().info(dep.toBazelDirective(addHashes, addServers));
 				}
 			}
