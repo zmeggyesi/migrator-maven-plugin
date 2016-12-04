@@ -8,6 +8,8 @@ public class InternalDependency {
 	private String version;
 	private String bazelName;
 	private String bazelArtifact;
+	private String jarServer;
+	private String pomServer;
 	
 	private String hash;
 	
@@ -21,7 +23,7 @@ public class InternalDependency {
 		this.version = version;
 		this.hash = hash;
 	}
-	
+
 	public String getArtifactId() {
 		return artifactId;
 	}
@@ -41,6 +43,14 @@ public class InternalDependency {
 	public String getHash() {
 		return hash;
 	}
+
+	public String getPomServer() {
+		return pomServer;
+	}
+	
+	public String getSourceServer() {
+		return jarServer;
+	}
 	
 	public String getVersion() {
 		return version;
@@ -56,6 +66,14 @@ public class InternalDependency {
 	
 	public void setHash(String hash) {
 		this.hash = hash;
+	}
+	
+	public void setPomServer(String pomServer) {
+		this.pomServer = pomServer;
+	}
+	
+	public void setSourceServer(String sourceServer) {
+		this.jarServer = sourceServer;
 	}
 
 	public void setVersion(String version) {
@@ -102,6 +120,7 @@ public class InternalDependency {
 	}
 
 	private String sanitize(CharSequence input) {
-		return CharMatcher.javaLetterOrDigit().or(CharMatcher.is('_')).negate().replaceFrom(input, "_");
+		return CharMatcher.javaLetterOrDigit().or(CharMatcher.is('_')).negate().replaceFrom(input,
+																							"_");
 	}
 }
