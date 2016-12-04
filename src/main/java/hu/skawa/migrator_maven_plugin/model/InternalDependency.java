@@ -8,6 +8,8 @@ public class InternalDependency {
 	private String version;
 	private String bazelName;
 	private String bazelArtifact;
+	private String jarServer;
+	private String pomServer;
 	
 	private String hash;
 	
@@ -21,7 +23,7 @@ public class InternalDependency {
 		this.version = version;
 		this.hash = hash;
 	}
-	
+
 	public String getArtifactId() {
 		return artifactId;
 	}
@@ -41,6 +43,14 @@ public class InternalDependency {
 	public String getHash() {
 		return hash;
 	}
+
+	public String getPomServer() {
+		return pomServer;
+	}
+	
+	public String getJarServer() {
+		return jarServer;
+	}
 	
 	public String getVersion() {
 		return version;
@@ -57,12 +67,20 @@ public class InternalDependency {
 	public void setHash(String hash) {
 		this.hash = hash;
 	}
+	
+	public void setPomServer(String pomServer) {
+		this.pomServer = pomServer;
+	}
+	
+	public void setJarServer(String sourceServer) {
+		this.jarServer = sourceServer;
+	}
 
 	public void setVersion(String version) {
 		this.version = version;
 	}
 
-	public String toBazelDirective(Boolean addHash) {
+	public String toBazelDirective(Boolean addHash, Boolean addServer) {
 		StringBuilder sb = new StringBuilder("maven_jar(\n");
 		sb.append("\tname = \"");
 		
@@ -74,15 +92,21 @@ public class InternalDependency {
 		sb.append("artifact = \"");
 		this.bazelArtifact = this.groupId + ":" + this.artifactId + ":" + this.version;
 		sb.append(this.bazelArtifact);
-		sb.append("\",\n");
+		sb.append("\",");
 		
 		if (addHash) {
-			sb.append("\tsha1 = \"");
+			sb.append("\n\tsha1 = \"");
 			sb.append(this.hash);
-			sb.append("\",\n");
+			sb.append("\",");
 		}
 		
-		sb.append(")");
+		if (addServer) {
+			sb.append("\n\tserver = \"");
+			sb.append(this.jarServer);
+			sb.append("\",");
+		}
+		
+		sb.append("\n)");
 		return sb.toString();
 	}
 
@@ -102,6 +126,7 @@ public class InternalDependency {
 	}
 
 	private String sanitize(CharSequence input) {
-		return CharMatcher.javaLetterOrDigit().or(CharMatcher.is('_')).negate().replaceFrom(input, "_");
+		return CharMatcher.javaLetterOrDigit().or(CharMatcher.is('_')).negate().replaceFrom(input,
+																							"_");
 	}
 }
