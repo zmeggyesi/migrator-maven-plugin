@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.maven.artifact.Artifact;
 
@@ -42,7 +44,7 @@ import hu.skawa.migrator_maven_plugin.model.InternalDependency;
 		name = "transform",
 		defaultPhase = LifecyclePhase.PROCESS_SOURCES,
 		requiresDependencyResolution = ResolutionScope.TEST)
-public class Migrator extends AbstractMojo {
+public class DependencyExport extends AbstractMojo {
 	
 	@Parameter(required = true, defaultValue = "${project}")
 	private MavenProject project;
@@ -59,7 +61,14 @@ public class Migrator extends AbstractMojo {
 	@Parameter(property = "addHashes", defaultValue = "false")
 	private Boolean addHashes;
 	
+	@Parameter(property = "addServers", defaultValue = "false")
+	private Boolean addServers;
+
 	private List<InternalDependency> allDependencies = new ArrayList<InternalDependency>();
+
+	private Pattern jarPattern = Pattern.compile("^.+?\\.[^javadoc]\\.jar\\>(.+?)\\=$", Pattern.MULTILINE);
+	@SuppressWarnings("unused")
+	private Pattern pomPattern = Pattern.compile("^.+?pom\\>(.+?)\\=$", Pattern.MULTILINE);
 	
 	public void execute() throws MojoExecutionException {
 		Set<Artifact> artifacts = project.getArtifacts();
@@ -74,15 +83,19 @@ public class Migrator extends AbstractMojo {
 			}
 			InternalDependency id = new InternalDependency(arti.getGroupId(), arti
 					.getArtifactId(), arti.getVersion(), hash);
-			allDependencies.add(id);
-			getLog().info(arti.getDownloadUrl());
 			File remotes = new File(file.getParent() + File.separator + "_remote.repositories");
 			try {
-				getLog().info(Files.toString(remotes, StandardCharsets.UTF_8));
+				String remoteDescriptorContent = Files.toString(remotes, StandardCharsets.UTF_8);
+				getLog().debug(remoteDescriptorContent);
+					Matcher jarServerMatcher = jarPattern.matcher(remoteDescriptorContent);
+					while (jarServerMatcher.find()) {
+						String server = jarServerMatcher.group(1);
+						id.setJarServer(server);
+					}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				getLog().warn("Could not locate repo");
 			}
+			allDependencies.add(id);
 		}
 		
 		try {
@@ -91,7 +104,7 @@ public class Migrator extends AbstractMojo {
 					File directives = new File(outputFilePrefix + "-directives");
 					FileWriter writer = new FileWriter(directives);
 					for (InternalDependency dep : allDependencies) {
-						writer.write(dep.toBazelDirective(addHashes));
+						writer.write(dep.toBazelDirective(addHashes, addServers));
 						writer.write("\n");
 					}
 					writer.close();
@@ -107,7 +120,7 @@ public class Migrator extends AbstractMojo {
 				}
 			} else {
 				for (InternalDependency dep : allDependencies) {
-//					getLog().info(dep.toBazelDirective(addHashes));
+					getLog().info(dep.toBazelDirective(addHashes, addServers));
 				}
 			}
 		} catch (IOException e) {
