@@ -90,7 +90,11 @@ public class DependencyExport extends AbstractMojo {
 					Matcher jarServerMatcher = jarPattern.matcher(remoteDescriptorContent);
 					while (jarServerMatcher.find()) {
 						String server = jarServerMatcher.group(1);
-						id.setJarServer(server);
+						if (server != null) {
+							id.setJarServer(server);
+						} else {
+							id.setJarServer("");
+						}
 					}
 			} catch (IOException e) {
 				getLog().warn("Could not locate repo");
