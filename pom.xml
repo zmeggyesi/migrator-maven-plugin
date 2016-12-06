@@ -4,16 +4,18 @@
 
 	<groupId>hu.skawa</groupId>
 	<artifactId>migrator-maven-plugin</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>Maven-Bazel Migration Plugin</name>
 
 	<url>https://zmeggyesi.github.io/migrator-maven-plugin/</url>
 	<inceptionYear>2016</inceptionYear>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<dependencies>

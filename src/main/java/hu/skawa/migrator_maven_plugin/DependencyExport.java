@@ -63,10 +63,11 @@ public class DependencyExport extends AbstractMojo {
 	
 	@Parameter(property = "addServers", defaultValue = "false")
 	private Boolean addServers;
-
+	
 	private List<InternalDependency> allDependencies = new ArrayList<InternalDependency>();
-
-	private Pattern jarPattern = Pattern.compile("^.+?\\.[^javadoc]\\.jar\\>(.+?)\\=$", Pattern.MULTILINE);
+	
+	private Pattern jarPattern =
+			Pattern.compile("^.+?\\.[^javadoc]\\.jar\\>(.+?)\\=$", Pattern.MULTILINE);
 	@SuppressWarnings("unused")
 	private Pattern pomPattern = Pattern.compile("^.+?pom\\>(.+?)\\=$", Pattern.MULTILINE);
 	
@@ -87,45 +88,47 @@ public class DependencyExport extends AbstractMojo {
 			try {
 				String remoteDescriptorContent = Files.toString(remotes, StandardCharsets.UTF_8);
 				getLog().debug(remoteDescriptorContent);
-					Matcher jarServerMatcher = jarPattern.matcher(remoteDescriptorContent);
-					while (jarServerMatcher.find()) {
-						String server = jarServerMatcher.group(1);
-						if (server != null) {
-							id.setJarServer(server);
-						} else {
-							id.setJarServer("");
-						}
+				Matcher jarServerMatcher = jarPattern.matcher(remoteDescriptorContent);
+				while (jarServerMatcher.find()) {
+					String server = jarServerMatcher.group(1);
+					if (server != null) {
+						id.setJarServer(server);
+					} else {
+						id.setJarServer("");
 					}
+				}
 			} catch (IOException e) {
-				getLog().warn("Could not locate repo");
+				getLog().warn("Could not locate repository file for " + arti.getArtifactId() + ", setting to empty!");
+				id.setJarServer("");
 			}
 			allDependencies.add(id);
 		}
 		
-		try {
-			for (InternalDependency dep : allDependencies) {
-				if (outputFilePrefix != null) {
+		if (outputFilePrefix != null) {
+			File directives = new File(outputFilePrefix + "-directives");
+			File references = new File(outputFilePrefix + "-references");
+			
+			try (	
+					FileWriter directiveWriter = new FileWriter(directives);
+					FileWriter referenceWriter = new FileWriter(references);
+				) {
+				for (InternalDependency dep : allDependencies) {
 					if (outputDirectives) {
-						File directives = new File(outputFilePrefix + "-directives");
-						FileWriter directiveWriter = new FileWriter(directives);
-						directiveWriter.write(dep.toBazelDirective(addHashes, addServers));
-						directiveWriter.write("\n");
-						directiveWriter.close();
+						directiveWriter.append(dep.toBazelDirective(addHashes, addServers));
+						directiveWriter.append("\n");
 					}
 					if (outputReferences) {
-						File references = new File(outputFilePrefix + "-references");
-						FileWriter referenceWriter = new FileWriter(references);
-						referenceWriter
-								.write(dep.getArtifactId() + ": @" + dep.getBazelName() + "//jar");
-						referenceWriter.write("\n");
-						referenceWriter.close();
+						referenceWriter.append(dep.getArtifactId() + ": @" + dep.getBazelName() + "//jar");
+						referenceWriter.append("\n");
 					}
-				} else {
-					getLog().info(dep.toBazelDirective(addHashes, addServers));
 				}
+			} catch (IOException e) {
+				getLog().error(e);
+			} 
+		} else {
+			for (InternalDependency dep : allDependencies) {
+				getLog().info(dep.toBazelDirective(addHashes, addServers));
 			}
-		} catch (IOException e) {
-			getLog().error(e);
 		}
 	}
 }
