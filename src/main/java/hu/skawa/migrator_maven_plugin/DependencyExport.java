@@ -105,8 +105,8 @@ public class DependencyExport extends AbstractMojo {
 		}
 		
 		if (outputFilePrefix != null) {
-			File directives = new File(outputFilePrefix + "-directives");
-			File references = new File(outputFilePrefix + "-references");
+			File directives = new File(outputFilePrefix + "-" + project.getName() + "-directives");
+			File references = new File(outputFilePrefix + "-" + project.getName() + "-references");
 			
 			try (	
 					FileWriter directiveWriter = new FileWriter(directives);
