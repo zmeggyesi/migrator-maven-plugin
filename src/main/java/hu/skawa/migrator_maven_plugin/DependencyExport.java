@@ -122,7 +122,6 @@ public class DependencyExport extends AbstractMojo {
 						referenceWriter.append("\n");
 					}
 				}
-				getLog().info("Closing outputStreams");
 			} catch (IOException e) {
 				getLog().error(e);
 			} 
