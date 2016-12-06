@@ -12,7 +12,7 @@ Used to generate a Bazel-compatible listing of all dependencies transitively. Pr
 <plugin>
 	<groupId>hu.skawa</groupId>
 	<artifactId>migrator-maven-plugin</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 </plugin>
 ```
 
