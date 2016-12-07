@@ -66,8 +66,7 @@ public class DependencyExport extends AbstractMojo {
 	
 	private List<InternalDependency> allDependencies = new ArrayList<InternalDependency>();
 	
-	private Pattern jarPattern =
-			Pattern.compile("^.+?\\.[^javadoc]\\.jar\\>(.+?)\\=$", Pattern.MULTILINE);
+	private Pattern jarPattern = Pattern.compile("^.+?\\.[^javadoc]\\.jar\\>(.+?)\\=$", Pattern.MULTILINE);
 	@SuppressWarnings("unused")
 	private Pattern pomPattern = Pattern.compile("^.+?pom\\>(.+?)\\=$", Pattern.MULTILINE);
 	
@@ -82,8 +81,7 @@ public class DependencyExport extends AbstractMojo {
 			} catch (IOException e) {
 				throw new MojoExecutionException("Dependency could not be hashed!", e);
 			}
-			InternalDependency id = new InternalDependency(arti.getGroupId(), arti
-					.getArtifactId(), arti.getVersion(), hash);
+			InternalDependency id = new InternalDependency(arti.getGroupId(), arti.getArtifactId(), arti.getVersion(), hash);
 			File remotes = new File(file.getParent() + File.separator + "_remote.repositories");
 			try {
 				String remoteDescriptorContent = Files.toString(remotes, StandardCharsets.UTF_8);
@@ -108,10 +106,9 @@ public class DependencyExport extends AbstractMojo {
 			File directives = new File(outputFilePrefix + "-" + project.getName() + "-directives");
 			File references = new File(outputFilePrefix + "-" + project.getName() + "-references");
 			
-			try (	
+			try (
 					FileWriter directiveWriter = new FileWriter(directives);
-					FileWriter referenceWriter = new FileWriter(references);
-				) {
+					FileWriter referenceWriter = new FileWriter(references);) {
 				for (InternalDependency dep : allDependencies) {
 					if (outputDirectives) {
 						directiveWriter.append(dep.toBazelDirective(addHashes, addServers));
@@ -124,7 +121,7 @@ public class DependencyExport extends AbstractMojo {
 				}
 			} catch (IOException e) {
 				getLog().error(e);
-			} 
+			}
 		} else {
 			for (InternalDependency dep : allDependencies) {
 				getLog().info(dep.toBazelDirective(addHashes, addServers));
