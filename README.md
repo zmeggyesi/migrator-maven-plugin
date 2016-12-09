@@ -4,7 +4,9 @@ Used to generate a Bazel-compatible listing of all dependencies transitively. Pr
 
 ## Preparation
 
-- Clone the repo and run `mvn install` to install the plugin in your local repo before running
+Clone the repo and run `mvn install` to install the plugin in your local repo before running.
+
+If you're looking to build a specific version, first you'll need to check out the appropriate tag/commit, and change the version number in the POM plugin declaration!
 
 ## Injecting
 
@@ -12,7 +14,7 @@ Used to generate a Bazel-compatible listing of all dependencies transitively. Pr
 <plugin>
 	<groupId>hu.skawa</groupId>
 	<artifactId>migrator-maven-plugin</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.1</version>
 </plugin>
 ```
 
@@ -21,8 +23,8 @@ Used to generate a Bazel-compatible listing of all dependencies transitively. Pr
 - Global
   - `outputFilePrefix[String]`: Determines the prefix of the output files. If set, console output is suppressed and directed to the selected files.
 - Dependency Export
-  - `outputDirectives[Boolean:true|false]`: Instructs the Migrator to output the `WORKSPACE` directives into a file named `${outputFilePrefix}-directives`
-  - `outputReferences[Boolean:true|false]`: Instructs the Migrator to output the `BUILD` directives into a file named `${outputFilePrefix}-references`
+  - `outputDirectives[Boolean:true|false]`: Instructs the Migrator to output the `WORKSPACE` directives into a file named `${outputFilePrefix}-${projectName}-directives`
+  - `outputReferences[Boolean:true|false]`: Instructs the Migrator to output the `BUILD` directives into a file named `${outputFilePrefix}-${projectName}-references`. Defaults to false.
   - `addHashes[Boolean:true|false]`: Instructs the Migrator to add SHA1 hashes of each artifact to the `WORKSPACE` directives. Defaults to false.
   - `addServers[Boolean:true|false]`: Instructs the Migrator to add the last server where the artifact was downloaded from. Uses only the JAR server, not the POM server, as Bazel only seems to care where the JAR can be downloaded from.
 
@@ -34,4 +36,10 @@ The export assumes that your personal/global settings are in their default place
 
 ## Use
 
-Run the plugin by executing `mvn hu.skawa:migrator-maven-plugin:${GOAL}`, optionally adding the above parameters
+Run the plugin by executing `mvn hu.skawa:migrator-maven-plugin:${GOAL}`, optionally adding the above parameters.
+
+If you have a modular project, the build *will* invoke the reactor, and the plugin is executed for each project in turn. This will result in multiple output files, each prefixed by your chosen prefix and the project name.
+
+## Known issues
+
+- The plugin relies on the presence of the Aether `_remote.repositories` file beside the artifacts to determine the latest server it was resolved from. If not found, a warning is emitted and the server name will be empty.
