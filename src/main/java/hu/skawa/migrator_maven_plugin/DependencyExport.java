@@ -55,7 +55,7 @@ public class DependencyExport extends AbstractMojo {
 	@Parameter(property = "outputDirectives")
 	private Boolean outputDirectives;
 	
-	@Parameter(property = "outputReferences")
+	@Parameter(property = "outputReferences", defaultValue = "false")
 	private Boolean outputReferences;
 	
 	@Parameter(property = "addHashes", defaultValue = "false")
