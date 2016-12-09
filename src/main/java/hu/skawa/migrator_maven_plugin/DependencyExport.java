@@ -23,11 +23,20 @@ import org.apache.maven.artifact.Artifact;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactDescriptorException;
+import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
+import org.eclipse.aether.resolution.ArtifactDescriptorResult;
+import org.eclipse.aether.resolution.ArtifactRequest;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
@@ -37,7 +46,7 @@ import hu.skawa.migrator_maven_plugin.model.InternalDependency;
 /**
  * Transform all dependencies for Bazel. Retrieves relevant information from the POM itself, and
  * uses the {@link ResolutionScope} TEST to scout all dependencies.
- * 
+ *
  * @author zmeggyesi
  */
 @Mojo(
@@ -45,6 +54,15 @@ import hu.skawa.migrator_maven_plugin.model.InternalDependency;
 		defaultPhase = LifecyclePhase.PROCESS_SOURCES,
 		requiresDependencyResolution = ResolutionScope.TEST)
 public class DependencyExport extends AbstractMojo {
+	
+	@Component
+	private RepositorySystem repoSystem;
+	
+	@Parameter(required = true, defaultValue = "${repositorySystemSession}")
+	private RepositorySystemSession repoSession;
+	
+	@Parameter(required = true, defaultValue = "${project.remotePluginRepositories}")
+	private List<RemoteRepository> remoteRepos;
 	
 	@Parameter(required = true, defaultValue = "${project}")
 	private MavenProject project;
@@ -64,12 +82,14 @@ public class DependencyExport extends AbstractMojo {
 	@Parameter(property = "addServers", defaultValue = "false")
 	private Boolean addServers;
 	
-	private List<InternalDependency> allDependencies = new ArrayList<InternalDependency>();
+	private List<InternalDependency> allDependencies = new ArrayList<>();
 	
 	private Pattern jarPattern = Pattern.compile("^.+?\\.[^javadoc]\\.jar\\>(.+?)\\=$", Pattern.MULTILINE);
+	
 	@SuppressWarnings("unused")
 	private Pattern pomPattern = Pattern.compile("^.+?pom\\>(.+?)\\=$", Pattern.MULTILINE);
 	
+	@Override
 	public void execute() throws MojoExecutionException {
 		Set<Artifact> artifacts = project.getArtifacts();
 		for (Artifact arti : artifacts) {
@@ -82,8 +102,8 @@ public class DependencyExport extends AbstractMojo {
 				throw new MojoExecutionException("Dependency could not be hashed!", e);
 			}
 			InternalDependency id = new InternalDependency(arti.getGroupId(), arti.getArtifactId(), arti.getVersion(), hash);
-			File remotes = new File(file.getParent() + File.separator + "_remote.repositories");
 			try {
+				File remotes = new File(file.getParent() + File.separator + "_remote.repositories");
 				String remoteDescriptorContent = Files.toString(remotes, StandardCharsets.UTF_8);
 				getLog().debug(remoteDescriptorContent);
 				Matcher jarServerMatcher = jarPattern.matcher(remoteDescriptorContent);
@@ -96,8 +116,8 @@ public class DependencyExport extends AbstractMojo {
 					}
 				}
 			} catch (IOException e) {
-				getLog().warn("Could not locate repository file for " + arti.getArtifactId() + ", setting to empty!");
-				id.setJarServer("");
+				getLog().warn("Could not locate repository file for " + arti.getArtifactId() + ", attempting to re-resolve!");
+				id = strongResolve(id);
 			}
 			allDependencies.add(id);
 		}
@@ -108,7 +128,8 @@ public class DependencyExport extends AbstractMojo {
 			
 			try (
 					FileWriter directiveWriter = new FileWriter(directives);
-					FileWriter referenceWriter = new FileWriter(references);) {
+					FileWriter referenceWriter = new FileWriter(references);
+			) {
 				for (InternalDependency dep : allDependencies) {
 					if (outputDirectives) {
 						directiveWriter.append(dep.toBazelDirective(addHashes, addServers));
@@ -126,6 +147,38 @@ public class DependencyExport extends AbstractMojo {
 			for (InternalDependency dep : allDependencies) {
 				getLog().info(dep.toBazelDirective(addHashes, addServers));
 			}
+		}
+	}
+	
+	private InternalDependency strongResolve(InternalDependency id) throws MojoExecutionException {
+		DefaultArtifact aethericArtifact = new DefaultArtifact(id.toMavenCoords());
+		ArtifactRequest request = new ArtifactRequest();
+		request.setArtifact(aethericArtifact);
+		request.setRepositories(remoteRepos);
+		
+		getLog().info("Resolving artifact " + aethericArtifact + " from " + remoteRepos);
+		
+		ArtifactDescriptorRequest descReq = new ArtifactDescriptorRequest().setRepositories(remoteRepos).setArtifact(aethericArtifact);
+		ArtifactDescriptorResult deRes;
+		try {
+			deRes = repoSystem.readArtifactDescriptor(repoSession, descReq);
+			List<RemoteRepository> repositories = deRes.getRepositories();
+			List<RemoteRepository> eventual = new ArrayList<RemoteRepository>();
+			for (RemoteRepository rere : repositories) {
+				for (RemoteRepository originalReRe : remoteRepos) {
+					if (rere.getId().equals(originalReRe.getId())) {
+						eventual.add(rere);
+						break;
+					}
+				}
+			}
+			id.setJarServer(eventual.get(0).getId());
+			return id;
+		} catch (ArtifactDescriptorException e) {
+			getLog().error(e.getMessage(), e);
+			getLog().warn("Could not resolve dependency repo, setting server to empty!");
+			id.setJarServer("");
+			return id;
 		}
 	}
 }

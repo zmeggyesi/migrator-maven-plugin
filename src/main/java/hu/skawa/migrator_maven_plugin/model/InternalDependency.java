@@ -129,4 +129,8 @@ public class InternalDependency {
 		return CharMatcher.javaLetterOrDigit().or(CharMatcher.is('_')).negate().replaceFrom(input,
 																							"_");
 	}
+
+	public String toMavenCoords() {
+		return String.format("%s:%s:%s", this.groupId, this.artifactId, this.version);
+	}
 }
