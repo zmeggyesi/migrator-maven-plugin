@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>hu.skawa</groupId>
@@ -60,7 +59,7 @@
 				<artifactId>maven-plugin-plugin</artifactId>
 				<version>3.2</version>
 				<configuration>
-					<goalPrefix>migrator-maven-plugin</goalPrefix>
+					<goalPrefix>migrator</goalPrefix>
 					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
 				</configuration>
 				<executions>
@@ -78,13 +77,38 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-gpg-plugin</artifactId>
+      <version>1.5</version>
+      <executions>
+        <execution>
+          <id>sign-artifacts</id>
+          <phase>verify</phase>
+          <goals>
+            <goal>sign</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+		<plugin>
+			<groupId>org.sonatype.plugins</groupId>
+			<artifactId>nexus-staging-maven-plugin</artifactId>
+			<version>1.6.7</version>
+			<extensions>true</extensions>
+			<configuration>
+				<serverId>ossrh</serverId>
+				<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+				<autoReleaseAfterClose>false</autoReleaseAfterClose>
+			</configuration>
+		</plugin>
 		</plugins>
 	</build>
+
 	<profiles>
 		<profile>
 			<id>run-its</id>
 			<build>
-
 				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -116,15 +140,26 @@
 						</executions>
 					</plugin>
 				</plugins>
-
 			</build>
 		</profile>
+		<profile>
+      <id>ossrh</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <gpg.executable>gpg2</gpg.executable>
+        <gpg.passphrase>fYu0jCAB1Ga3kNgxPcDN</gpg.passphrase>
+				<gpg.homedir>c:\tools\msys64\home\zmeggyesi\.gnupg\</gpg.homedir>
+      </properties>
+    </profile>
 	</profiles>
 	<scm>
 		<connection>scm:git:ssh://github.com/zmeggyesi/migrator-maven-plugin.git</connection>
-	</scm>
+	  <tag>v1.1.1</tag>
+  </scm>
 	<organization>
 		<name>Skawa Innovation Kft.</name>
 	</organization>
-	<description>Used to generate a Bazel-compatible listing of all dependencies transitively. Provides a listing of &quot;maven_jar()&quot; directives for the WORKSPACE file, and on request, the relevant &quot;@references&quot; for the BUILD files.</description>
+	<description>Used to generate a Bazel-compatible listing of all dependencies transitively. Provides a listing of "maven_jar()" directives for the WORKSPACE file, and on request, the relevant "@references" for the BUILD files.</description>
 </project>
