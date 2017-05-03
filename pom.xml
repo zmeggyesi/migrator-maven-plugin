@@ -18,6 +18,17 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.maven</groupId>
@@ -60,7 +71,7 @@
 				<artifactId>maven-plugin-plugin</artifactId>
 				<version>3.2</version>
 				<configuration>
-					<goalPrefix>migrator-maven-plugin</goalPrefix>
+					<goalPrefix>migrator</goalPrefix>
 					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
 				</configuration>
 				<executions>
@@ -78,13 +89,59 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.8</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>false</autoReleaseAfterClose>
+				</configuration>
+				<dependencies>
+					<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->
+					<dependency>
+						<groupId>org.apache.httpcomponents</groupId>
+						<artifactId>httpcore</artifactId>
+						<version>4.4.6</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
+
 	<profiles>
 		<profile>
 			<id>run-its</id>
 			<build>
-
 				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -116,15 +173,39 @@
 						</executions>
 					</plugin>
 				</plugins>
-
 			</build>
 		</profile>
+		<profile>
+			<id>ossrh</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<gpg.executable>gpg2</gpg.executable>
+				<!-- GPG passphrase stored locally -->
+			</properties>
+		</profile>
 	</profiles>
+
+	<licenses>
+		<license>
+			<name>The Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Zalán Meggyesi</name>
+			<organization>Skawa Innovation Kft.</organization>
+			<organizationUrl>https://github.com/zmeggyesi</organizationUrl>
+		</developer>
+	</developers>
 	<scm>
 		<connection>scm:git:ssh://github.com/zmeggyesi/migrator-maven-plugin.git</connection>
+		<developerConnection>scm:git:ssh://github.com/zmeggyesi/migrator-maven-plugin.git</developerConnection>
+		<tag>v1.1.1</tag>
+		<url>https://github.com/zmeggyesi/migrator-maven-plugin</url>
 	</scm>
-	<organization>
-		<name>Skawa Innovation Kft.</name>
-	</organization>
-	<description>Used to generate a Bazel-compatible listing of all dependencies transitively. Provides a listing of &quot;maven_jar()&quot; directives for the WORKSPACE file, and on request, the relevant &quot;@references&quot; for the BUILD files.</description>
+	
+	<description>Used to generate a Bazel-compatible listing of all dependencies transitively. Provides a listing of "maven_jar()" directives for the WORKSPACE file, and on request, the relevant "@references" for the BUILD files.</description>
 </project>
